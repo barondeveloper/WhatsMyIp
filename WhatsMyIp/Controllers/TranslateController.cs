@@ -55,10 +55,11 @@ namespace WhatsMyIp.Controllers
         {
             Visitor visitor = null;
             var returnModel = new ReturnModel();
+            bool isLocal = false;
             try
             {
                 var CallerIp = HttpContext.Current.Request.UserHostAddress.ToString();
-                var isLocal = CallerIp == "::1";
+                isLocal = CallerIp == "::1";
                 var CallerAgent = HttpContext.Current.Request.UserAgent;
                 var CalledUrl = HttpContext.Current.Request.Url.OriginalString;
                 var browserName = Utils.GetBrowserName(CallerAgent);
@@ -81,15 +82,18 @@ namespace WhatsMyIp.Controllers
             link = link + "&subid=" + settings.subid;
             link = link + "&ua=" + settings.ua;
             link = link + "&url=" + settings.url;
-            link = link + "&user_ip=" + visitor.IP;// "185.120.124.62";//
+            link = link + "&user_ip=" + (isLocal ? visitor.IP : "185.120.124.62");
             link = link + "&query=" + settings.query;
 
-            var getDataTask = Task.Run(async () => {return await HttpUtils.GetString(link); });
+            var getDataTask = Task.Run(async () => { return await HttpUtils.GetString(link); });
             var saveToDBTask = Task.Run(async () =>
             {
-                var dc = new video_tdsEntities();
-                dc.Visitors.Add(visitor);
-                await dc.SaveChangesAsync();
+                if(isLocal)
+                {
+                    var dc = new video_tdsEntities();
+                    dc.Visitors.Add(visitor);
+                    await dc.SaveChangesAsync();
+                }               
             });
 
             await Task.WhenAll(getDataTask, saveToDBTask);
@@ -97,11 +101,9 @@ namespace WhatsMyIp.Controllers
             var result = getDataTask.Result;
 
             XDocument doc = XDocument.Parse(result);
-
             var listing = doc.Element("result").Element("listing");
             returnModel.url = listing.Attribute("url").Value;
             returnModel.pixel = listing.Attribute("pixel").Value;
-
 
             return returnModel;
 
