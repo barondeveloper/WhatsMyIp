@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Web;
 
@@ -78,6 +80,19 @@ namespace WhatsMyIp.Models
         public static string FillTemplate(string template, Dictionary<string, string> placeHolders)
         {
             return placeHolders.Aggregate(template, (current, textITem) => current.Replace(textITem.Key, textITem.Value));
+        }
+
+        public static T ReadConfig<T>(this string path)
+        {
+            return JObject.Parse(ReadFile(path)).ToObject<T>();
+        }
+
+        public static string ReadFile(string path)
+        {
+            using (StreamReader r = new StreamReader(path))
+            {
+                return r.ReadToEnd();
+            }
         }
     }
 }
