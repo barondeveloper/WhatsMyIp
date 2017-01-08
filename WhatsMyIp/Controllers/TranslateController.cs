@@ -51,7 +51,7 @@ namespace WhatsMyIp.Controllers
         }
 
         [HttpPost, Route("", Name = "getIPAndUrl")]
-        public async Task<ReturnModel> GetUrl(UrlRequstModel settings)
+        public async Task<ReturnModel> GetUrl([FromBody]UrlRequstModel settings)
         {
             Visitor visitor = null;
             var returnModel = new ReturnModel();
@@ -73,16 +73,15 @@ namespace WhatsMyIp.Controllers
                 return returnModel;
             }
 
-
             string path = HttpContext.Current.Server.MapPath("~/Content/config.json");
             var config = path.ReadConfig<UrlRequstModel>();
             var link = config.link;
-            link = link + "?feed=" + config.feed;
-            link = link + "&auth=" + config.auth;
+            link = link + "?feed=" + settings.feed;
+            link = link + "&auth=" + settings.auth;
             link = link + "&subid=" + settings.subid;
             link = link + "&ua=" + settings.ua;
             link = link + "&url=" + settings.url;
-            link = link + "&user_ip=" + (isLocal ? visitor.IP : "185.120.124.62");
+            link = link + "&user_ip=" + (!isLocal ? visitor.IP : "185.120.124.62");
             link = link + "&query=" + settings.query;
 
             var getDataTask = Task.Run(async () => { return await HttpUtils.GetString(link); });
