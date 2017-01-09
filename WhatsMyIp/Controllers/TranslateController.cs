@@ -84,26 +84,33 @@ namespace WhatsMyIp.Controllers
             link = link + "&user_ip=" + (!isLocal ? visitor.IP : "185.120.124.62");
             link = link + "&query=" + settings.query;
 
+
             var getDataTask = Task.Run(async () => { return await HttpUtils.GetString(link); });
             var saveToDBTask = Task.Run(async () =>
             {
-                if(isLocal)
+                if (isLocal)
                 {
                     var dc = new video_tdsEntities();
                     dc.Visitors.Add(visitor);
                     await dc.SaveChangesAsync();
-                }               
+                }
             });
 
             await Task.WhenAll(getDataTask, saveToDBTask);
 
             var result = getDataTask.Result;
-
-            XDocument doc = XDocument.Parse(result);
-            var listing = doc.Element("result").Element("listing");
-            returnModel.url = listing.Attribute("url").Value;
-            returnModel.pixel = listing.Attribute("pixel").Value;
-
+            returnModel.xml = result;
+            try
+            {
+                XDocument doc = XDocument.Parse(result);
+                var listing = doc.Element("result").Element("listing");
+                returnModel.url = listing.Attribute("url").Value;
+                returnModel.pixel = listing.Attribute("pixel")?.Value ?? "";
+            }
+            catch (Exception ex)
+            {
+                returnModel.error = ex.Message;
+            }
             return returnModel;
 
         }

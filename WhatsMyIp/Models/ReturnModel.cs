@@ -10,5 +10,6 @@ namespace WhatsMyIp.Models
         public string error { get; set; }
         public string pixel { get; set; }
         public string url { get; set; }
+        public string xml { get; set; }
     }
 }
