@@ -88,7 +88,7 @@ namespace WhatsMyIp.Controllers
             var getDataTask = Task.Run(async () => { return await HttpUtils.GetString(link); });
             var saveToDBTask = Task.Run(async () =>
             {
-                if (isLocal)
+                if (!isLocal)
                 {
                     var dc = new video_tdsEntities();
                     dc.Visitors.Add(visitor);
